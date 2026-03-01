@@ -10,6 +10,11 @@ from farmas_sales.views import ClienteViewSet, VentaViewSet
 from farmas_purchases.views import ProveedorViewSet
 
 from farmas_inventory.views_alerts import AlertaStockBajoView, AlertaLotesPorVencerView
+from farmas_accounting.views import LibroVentaViewSet
+from django.urls import path
+from farmas_accounting.reports import ReporteLibroVentas
+from farmas_accounting.exports import ExportLibroVentasExcel
+from farmas_accounting.exports_pdf import ExportLibroVentasPDF
 
 router = DefaultRouter()
 router.register(r"categorias", CategoriaViewSet, basename="categoria")
@@ -19,6 +24,7 @@ router.register(r"lotes", LoteViewSet, basename="lote")
 router.register(r"clientes", ClienteViewSet, basename="cliente")
 router.register(r"proveedores", ProveedorViewSet, basename="proveedor")
 router.register(r"ventas", VentaViewSet, basename="venta")
+router.register(r"libro-ventas", LibroVentaViewSet, basename="libro-venta")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -30,9 +36,16 @@ urlpatterns = [
     path("api/alertas/stock-bajo/", AlertaStockBajoView.as_view(), name="alerta_stock_bajo"),
     path("api/alertas/lotes-por-vencer/", AlertaLotesPorVencerView.as_view(), name="alerta_lotes_por_vencer"),
 
-    # Auth JWT (SimpleJWT)
+    # Auth JWT 
     path("api/auth/login/", TokenObtainPairView.as_view(), name="jwt_login"),
     path("api/auth/refresh/", TokenRefreshView.as_view(), name="jwt_refresh"),
+
+    path("api/", include(router.urls)),
+    path("api/reportes/libro-ventas/", ReporteLibroVentas.as_view()),
+    # exportacion a excel 
+    path("api/reportes/libro-ventas/excel/", ExportLibroVentasExcel.as_view()),
+    #exportacion en pdf 
+    path("api/reportes/libro-ventas/pdf/", ExportLibroVentasPDF.as_view()),
 ]
 
 

@@ -30,7 +30,7 @@ def q2(x: Decimal) -> Decimal:
 1
 class VentaCreateSerializer(serializers.Serializer):
     cliente_id = serializers.IntegerField(required=False, allow_null=True)
-    items = VentaItemSerializer(many=True)
+    items = VentaItemSerializer(many=True, write_only=True)
 
     def validate(self, attrs):
         items = attrs.get("items") or []
@@ -49,7 +49,7 @@ class VentaCreateSerializer(serializers.Serializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        items = validated_data["items"]
+        items = validated_data.pop("items")
         cliente_id = validated_data.get("cliente_id")
 
         venta = Venta.objects.create(

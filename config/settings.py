@@ -45,6 +45,7 @@ INSTALLED_APPS = [
 'farmas_purchases',
 'farmas_sales',
 'farmas_audit',
+'farmas_accounting',
 ]
 
 MIDDLEWARE = [
