@@ -70,7 +70,7 @@ class LibroCompra(models.Model):
         EMITIDA = "EMITIDA", "Emitida"
         ANULADA = "ANULADA", "Anulada"
 
-    # RELACIÓN 1-1 con tu Compra (NO modifica la tabla Compra)
+    
     compra = models.OneToOneField(
         "farmas_purchases.Compra",
         on_delete=models.PROTECT,
