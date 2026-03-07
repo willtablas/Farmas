@@ -30,7 +30,7 @@ class DetalleCompra(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.PROTECT)
     lote = models.ForeignKey(Lote, on_delete=models.PROTECT)
 
-    cantidad = models.PositiveIntegerField()
+    cantidad = models.DecimalField(max_digits=12, decimal_places=2)
     precio_unitario = models.DecimalField(max_digits=12, decimal_places=2)
 
     def __str__(self):

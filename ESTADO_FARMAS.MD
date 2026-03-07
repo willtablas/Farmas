@@ -1,60 +1,337 @@
 # ESTADO DEL PROYECTO FARMAS
 
-## Backend
-- Proyecto backend con Django + Django REST Framework funcionando
-- Entorno virtual (venv) configurado y activo
-- Servidor levanta correctamente con `python manage.py runserver`
+# Estado del Proyecto FARMAS
+Actualizado: Marzo 2026
 
-## Base de datos
-- Base de datos: PostgreSQL (`farmas_db`)
-- Conexión verificada desde Django
-- Migraciones aplicadas correctamente
-- Tablas visibles y operativas
+## Descripción General
+FARMAS es un sistema backend para la gestión de farmacias desarrollado con **Django + Django REST Framework**.  
+El sistema implementa control de inventario por lotes, ventas POS, contabilidad básica y generación de reportes financieros.
 
-## Inventario
-- App principal: `farmas_inventory`
-- Modelo `Producto`:
-  - Campos: codigo, nombre, categoria, unidad
-  - precio_costo, precio_venta
-  - stock_minimo (campo agregado y migrado correctamente)
-  - requiere_lote, activo, created_at
-- Modelo `Lote`:
-  - FK a Producto con `related_name="lotes"`
-  - numero_lote, cantidad_disponible, fecha_vencimiento
-- El stock real se calcula como la suma de `cantidad_disponible` de los lotes
+La arquitectura del sistema está dividida en módulos principales:
 
-## Ventas
-- App: `farmas_sales`
-- Modelos `Venta` y `DetalleVenta` existen
-- `DetalleVenta` tiene FK a `Lote` (trazabilidad por lote)
-- VentaCreateSerializer:
-  - Crea la venta
-  - Descuenta stock por lotes (FIFO por fecha_vencimiento)
-  - Usa `transaction.atomic`
-  - Lanza error si no hay stock suficiente
-  - Calcula subtotal, ISV y total
-- La trazabilidad por lote ya está implementada y funcionando
-- No es necesario crear un modelo adicional para ventas por lote
+- Inventario
+- Ventas
+- Compras
+- Contabilidad
+- Reportes
+- Autenticación
 
-## Alertas automáticas
-- Archivo: `farmas_inventory/views_alerts.py`
-- Endpoint de alerta de stock bajo IMPLEMENTADO y FUNCIONANDO:
-  - `/api/alertas/stock-bajo/`
-  - Devuelve productos cuyo stock total <= stock_minimo
-  - Probado con HTTP 200 OK
-- Endpoint de alerta de lotes por vencer IMPLEMENTADO:
-  - `/api/alertas/lotes-por-vencer/?days=30`
-  - Devuelve lotes con stock disponible y vencimiento cercano
-- Rutas registradas correctamente en `config/urls.py`
+---
 
-## Estado actual del proyecto
-- Backend estable y funcional
-- Ventas con control de stock por lotes completadas
-- Alertas automáticas de stock bajo funcionando
-- Proyecto listo para ser consumido por frontend
+# Arquitectura del Proyecto
 
-## Próximos pasos recomendados
-- Probar y ajustar alerta de lotes por vencer
-- Implementar seguridad por roles (admin, vendedor, bodega)
-- Auditoría de acciones (ventas, movimientos de inventario)
-- Documentación final de endpoints para frontend
+Apps principales del sistema:
+
+- farmas_inventory
+- farmas_sales
+- farmas_purchases
+- farmas_accounting
+- reportes
+- config
+
+---
+
+# Módulo de Inventario
+
+## Modelos implementados
+
+- Categoria
+- UnidadMedida
+- Producto
+- Lote
+
+## Características
+
+- Control de productos por categoría
+- Control por unidad de medida
+- Manejo de inventario por lotes
+- Fecha de vencimiento por lote
+- Control de cantidad disponible
+- Stock mínimo por producto
+- Índices para optimizar consultas por producto y fecha de vencimiento
+
+## Endpoints disponibles
+
+
+/api/categorias/
+/api/unidades/
+/api/productos/
+/api/lotes/
+
+
+## Funcionalidades adicionales
+
+- Búsqueda de productos para POS
+
+
+/api/productos/buscar/?q=texto
+
+
+Permite buscar productos por:
+
+- código
+- nombre
+
+---
+
+# Módulo de Ventas
+
+## Modelos implementados
+
+- Cliente
+- Venta
+- DetalleVenta
+- VentaLote
+- AnulacionVenta
+
+## Características
+
+- Registro de ventas POS
+- Cálculo automático de subtotal, ISV y total
+- Asociación de productos con lotes
+- Trazabilidad de lotes utilizados en cada venta
+- Manejo de estado de venta
+
+Estados disponibles:
+
+- ACTIVA
+- ANULADA
+
+## Anulación de ventas
+
+Endpoint:
+
+
+POST /api/ventas/{id}/anular/
+
+
+Características:
+
+- registra motivo de anulación
+- registra usuario que anula
+- cambia estado de venta
+
+## Generación automática de contabilidad
+
+Al crear una venta se ejecuta automáticamente:
+
+
+generar_libro_venta()
+
+
+Esto crea el registro correspondiente en **LibroVenta**.
+
+---
+
+# Módulo de Compras
+
+## Modelos implementados
+
+- Proveedor
+- Compra
+- DetalleCompra
+
+## Estado actual
+
+El módulo de compras ya se encuentra funcional a nivel backend.
+
+## Funcionalidades implementadas
+
+- Registro de compras por API
+- Registro de detalle de compra
+- Asociación de productos con lotes
+- Creación automática de lotes si no existen
+- Actualización de stock en inventario al registrar compras
+- Generación automática de LibroCompra mediante signal `post_save`
+
+## Endpoints disponibles
+
+/api/proveedores/
+/api/compras/
+
+## Integración contable
+
+Al crear una compra, el sistema genera automáticamente su registro en `LibroCompra`.
+
+## Resultado
+
+El flujo de compras quedó completo en backend y conectado con inventario y contabilidad.
+
+# Módulo Contable
+
+## Modelos
+
+- LibroVenta
+- LibroCompra
+
+## LibroVenta
+
+Características:
+
+- relación 1:1 con Venta
+- snapshot de datos del cliente
+- subtotal
+- IVA
+- total
+- tipo de pago
+- usuario
+- estado contable
+
+Tabla en base de datos:
+
+
+libro_ventas
+
+
+## LibroCompra
+
+Características:
+
+- relación 1:1 con Compra
+- snapshot del proveedor
+- factura del proveedor
+- subtotal
+- IVA
+- total
+- usuario
+- estado contable
+
+Tabla en base de datos:
+
+
+libro_compras
+
+
+---
+
+# Módulo de Reportes
+
+## Reporte de Inventario
+
+Endpoint:
+
+
+GET /api/reportes/inventario/
+
+
+Lista todos los lotes con stock disponible.
+
+Campos principales:
+
+- producto
+- lote
+- cantidad disponible
+- fecha de vencimiento
+
+---
+
+## Reporte Financiero
+
+Endpoint:
+
+
+GET /api/reportes/financiero/
+
+
+Este reporte consolida información de:
+
+- LibroVenta
+- LibroCompra
+
+Cálculos incluidos:
+
+- ventas totales
+- compras totales
+- utilidad
+
+Permite filtros por rango de fechas:
+
+
+?fecha_inicio=YYYY-MM-DD
+?fecha_fin=YYYY-MM-DD
+
+
+---
+
+## Exportaciones disponibles
+
+### Excel
+
+
+/api/reportes/financiero/excel/
+
+
+### PDF
+
+
+/api/reportes/financiero/pdf/
+
+
+---
+
+# Alertas del sistema
+
+## Stock bajo
+
+
+/api/alertas/stock-bajo/
+
+
+## Lotes por vencer
+
+
+/api/alertas/lotes-por-vencer/
+
+
+---
+
+# Autenticación
+
+El sistema utiliza **JWT (JSON Web Token)**.
+
+Endpoints:
+
+
+/api/token/
+/api/token/refresh/
+
+
+---
+
+# Estado actual del sistema
+
+## Módulos completamente funcionales
+
+- Inventario
+- Ventas
+- Anulación de ventas
+- Libro de ventas
+- Reportes financieros
+- Reporte de inventario
+- Exportaciones Excel y PDF
+- Alertas de inventario
+
+## Módulos parcialmente implementados
+
+- Compras
+- Libro de compras (modelo y signal existen)
+
+## Pendiente principal
+
+Completar flujo de compras:
+
+- serializers de compra
+- vista para compras
+- endpoint `/api/compras/`
+- registro de detalle de compra
+- actualización de inventario al comprar
+
+---
+
+# Conclusión
+
+El sistema FARMAS cuenta con una arquitectura modular sólida y la mayor parte del backend funcional.
+
+Los módulos de **inventario, ventas y contabilidad de ventas** están completamente operativos.
+
+El siguiente paso para completar el sistema consiste en implementar el flujo completo del **módulo de compras**, permitiendo registrar compras, actualizar inventario y generar automáticamente los registros contables correspondientes.

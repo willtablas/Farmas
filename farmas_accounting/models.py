@@ -64,3 +64,49 @@ class LibroVenta(models.Model):
 
     def __str__(self):
         return f"{self.serie or ''}{self.numero_documento} - {self.total}"
+    
+class LibroCompra(models.Model):
+    class Estado(models.TextChoices):
+        EMITIDA = "EMITIDA", "Emitida"
+        ANULADA = "ANULADA", "Anulada"
+
+    # RELACIÓN 1-1 con tu Compra (NO modifica la tabla Compra)
+    compra = models.OneToOneField(
+        "farmas_purchases.Compra",
+        on_delete=models.PROTECT,
+        related_name="libro_compra",
+    )
+
+    fecha = models.DateField(db_index=True)
+
+    # Snapshot del proveedor
+    proveedor_nombre = models.CharField(max_length=255)
+    proveedor_rtn = models.CharField(max_length=30, blank=True, default="")
+    factura_proveedor = models.CharField(max_length=50, blank=True, default="")
+
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    isv = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    total = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+
+    estado = models.CharField(max_length=10, choices=Estado.choices, default=Estado.EMITIDA)
+
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="libros_compra",
+    )
+
+    motivo_anulacion = models.CharField(max_length=255, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "libro_compras"
+        indexes = [
+            models.Index(fields=["fecha"]),
+        ]
+        ordering = ["-fecha", "-id"]
+
+    def __str__(self):
+        return f"Compra {self.compra_id} - {self.total}"    

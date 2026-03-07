@@ -6,12 +6,16 @@ from config.permissions import IsFarmaciaRole
 from farmas_accounting.services import generar_libro_venta
 from .models import Cliente, Venta
 from .serializers import ClienteSerializer, VentaCreateSerializer
-
+from rest_framework.decorators import action
+from rest_framework import status
+from .services import anular_venta
 
 class ClienteViewSet(viewsets.ModelViewSet):
     queryset = Cliente.objects.all().order_by("id")
     serializer_class = ClienteSerializer
     permission_classes = [IsFarmaciaRole]
+
+    
 
 
 class VentaViewSet(viewsets.ModelViewSet):
@@ -39,4 +43,21 @@ class VentaViewSet(viewsets.ModelViewSet):
                 "total": str(venta.total),
             },
             status=status.HTTP_201_CREATED,
+        )
+
+    
+    @action(detail=True, methods=["post"])
+    def anular(self, request, pk=None):
+        venta = self.get_object()
+        motivo = request.data.get("motivo", "")
+
+        anular_venta(venta=venta, usuario=request.user, motivo=motivo)
+
+        return Response(
+            {
+                "detail": "Venta anulada correctamente.",
+                "venta_id": venta.id,
+                "estado": "ANULADA",
+            },
+            status=status.HTTP_200_OK,
         )

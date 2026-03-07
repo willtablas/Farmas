@@ -1,7 +1,8 @@
-from django.db import models
-from django.db import models
-from farmas_inventory.models import Producto, Lote
 
+from farmas_inventory.models import Producto, Lote
+from django.utils import timezone
+from django.conf import settings
+from django.db import models
 
 class Cliente(models.Model):
     # No crédito: datos básicos
@@ -20,6 +21,12 @@ class Cliente(models.Model):
 
 
 class Venta(models.Model):
+
+    ESTADOS = (
+        ("ACTIVA", "Activa"),
+        ("ANULADA", "Anulada"),
+    )
+
     cliente = models.ForeignKey(Cliente, on_delete=models.SET_NULL, null=True, blank=True)
     fecha = models.DateTimeField(auto_now_add=True, db_index=True)
 
@@ -29,6 +36,16 @@ class Venta(models.Model):
 
     tipo_comprobante = models.CharField(max_length=30, default="ticket")
     numero_comprobante = models.CharField(max_length=60, unique=True, null=True, blank=True)
+
+    
+    estado = models.CharField(max_length=10, choices=ESTADOS, default="ACTIVA", db_index=True)
+    anulada_at = models.DateTimeField(null=True, blank=True)
+    anulada_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name="ventas_anuladas"
+    )
 
     def __str__(self):
         return f"Venta #{self.id}"
@@ -47,6 +64,18 @@ class DetalleVenta(models.Model):
         return f"Venta #{self.venta_id} - {self.producto.codigo}"
 from django.db import models
 
+class AnulacionVenta(models.Model):
+    venta = models.OneToOneField(Venta, on_delete=models.PROTECT, related_name="anulacion")
+    motivo = models.TextField()
+    fecha = models.DateTimeField(auto_now_add=True)
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT
+    )
+
+    def __str__(self):
+        return f"Anulación Venta #{self.venta_id}"
+    
 class VentaLote(models.Model):
     venta = models.ForeignKey("Venta", on_delete=models.CASCADE, related_name="lotes_usados")
     detalle = models.ForeignKey("DetalleVenta", on_delete=models.CASCADE, related_name="lotes_usados")

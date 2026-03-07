@@ -42,10 +42,12 @@ class ProductoPOSSerializer(serializers.ModelSerializer):
             "stock_minimo",
         ]
         
-        from .models import Producto
 from rest_framework import serializers
+from .models import Producto, Lote
 
 class ProductoPOSSerializer(serializers.ModelSerializer):
+    stock_total = serializers.SerializerMethodField()
+
     class Meta:
         model = Producto
         fields = [
@@ -58,4 +60,12 @@ class ProductoPOSSerializer(serializers.ModelSerializer):
             "requiere_lote",
             "activo",
             "stock_minimo",
+            "stock_total",
         ]
+
+    def get_stock_total(self, obj):
+        return sum(
+            lote.cantidad_disponible
+            for lote in obj.lotes.all()
+            if lote.cantidad_disponible > 0
+        )

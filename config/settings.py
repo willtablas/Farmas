@@ -39,13 +39,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
    'rest_framework',
+   'rest_framework_simplejwt',
 
 'farmas_accounts',
 'farmas_inventory',
 'farmas_purchases',
 'farmas_sales',
 'farmas_audit',
-'farmas_accounting',
+"farmas_accounting.apps.FarmasAccountingConfig",
+'reportes',
 ]
 
 MIDDLEWARE = [
@@ -135,6 +137,7 @@ USE_TZ = True
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
