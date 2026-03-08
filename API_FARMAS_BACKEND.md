@@ -1,188 +1,378 @@
-# 🏥 Sistema de Gestión de Farmacias "Farmas"
-## Documentación Oficial del Backend
+# API FARMAS BACKEND
 
-**Tecnologías:** Django + Django REST Framework + PostgreSQL  
-**Autenticación:** JWT (Bearer Token)  
-**Base URL local:** `http://127.0.0.1:8000`  
-**Prefijo API:** `/api/`
+Documentación técnica de endpoints disponibles en el sistema FARMAS.  
+Backend desarrollado con Django + Django REST Framework.
+
+Fecha de actualización: 07 marzo 2026
 
 ---
 
-# 🔐 1) Autenticación (JWT)
+# 1. AUTENTICACIÓN
 
-## Login (obtener tokens)
-**POST** `/api/auth/login/`
+## Obtener token JWT
 
-**Body:**
+**POST**
+`/api/token/`
+
+### Body
 ```json
 {
   "username": "usuario",
-  "password": "password"
+  "password": "contraseña"
 }
-Respuesta:
-
+Respuesta esperada
 {
-  "refresh": "...",
-  "access": "..."
+  "refresh": "token_refresh",
+  "access": "token_access"
 }
-Refresh (renovar access)
-POST /api/auth/refresh/
+Refrescar token
 
-Body:
+POST
+/api/token/refresh/
 
+Body
 {
-  "refresh": "..."
+  "refresh": "token_refresh"
 }
-🧾 2) Headers requeridos
-Para endpoints protegidos:
+2. INVENTARIO
+Categorías
 
-Authorization: Bearer <ACCESS_TOKEN>
-Content-Type: application/json
-📌 3) API Root (rutas disponibles)
-GET /api/
-Devuelve la lista de endpoints principales:
-
+GET, POST
 /api/categorias/
 
+GET, PUT, PATCH, DELETE
+/api/categorias/{id}/
+
+Unidades de medida
+
+GET, POST
 /api/unidades/
 
+GET, PUT, PATCH, DELETE
+/api/unidades/{id}/
+
+Productos
+
+GET, POST
 /api/productos/
 
+GET, PUT, PATCH, DELETE
+/api/productos/{id}/
+
+Campos principales
+
+codigo
+
+nombre
+
+categoria
+
+unidad
+
+precio_costo
+
+precio_venta
+
+requiere_lote
+
+activo
+
+stock_minimo
+
+Búsqueda de productos para POS
+
+GET
+/api/productos/buscar/?q=texto
+
+Parámetros opcionales
+
+q: texto de búsqueda
+
+solo_activos=true
+
+limite=20
+
+Lotes
+
+GET, POST
 /api/lotes/
 
+GET, PUT, PATCH, DELETE
+/api/lotes/{id}/
+
+Campos principales
+
+producto
+
+numero_lote
+
+fecha_vencimiento
+
+cantidad_disponible
+
+3. ALERTAS
+Alerta de stock bajo
+
+GET
+/api/alertas/stock-bajo/
+
+Alerta de lotes por vencer
+
+GET
+/api/alertas/lotes-por-vencer/
+
+4. CLIENTES
+Clientes
+
+GET, POST
 /api/clientes/
 
+GET, PUT, PATCH, DELETE
+/api/clientes/{id}/
+
+Campos principales
+
+nombre
+
+telefono
+
+identidad
+
+5. PROVEEDORES
+Proveedores
+
+GET, POST
 /api/proveedores/
 
-/api/ventas/
+GET, PUT, PATCH, DELETE
+/api/proveedores/{id}/
 
-🧩 4) Catálogos
-Categorías
-GET /api/categorias/ (listar)
+Campos principales
 
-POST /api/categorias/ (crear)
+nombre
 
-GET /api/categorias/{id}/ (detalle)
+contacto
 
-PUT/PATCH /api/categorias/{id}/ (actualizar)
+telefono
 
-DELETE /api/categorias/{id}/ (eliminar)
+6. COMPRAS
+Compras
 
-Unidades
-GET /api/unidades/
+GET, POST
+/api/compras/
 
-POST /api/unidades/
+GET, PUT, PATCH, DELETE
+/api/compras/{id}/
 
-GET /api/unidades/{id}/
-
-PUT/PATCH /api/unidades/{id}/
-
-DELETE /api/unidades/{id}/
-
-💊 5) Productos
-Listar productos
-GET /api/productos/
-
-Crear producto
-POST /api/productos/
-
-Body (ejemplo):
-
+Estructura de creación
 {
-  "codigo": "P001",
-  "nombre": "Paracetamol",
-  "categoria": 1,
-  "unidad": 1,
-  "precio_costo": "3.00",
-  "precio_venta": "5.00",
-  "requiere_lote": true,
-  "activo": true
-}
-Operaciones por ID
-GET /api/productos/{id}/
-
-PUT/PATCH /api/productos/{id}/
-
-DELETE /api/productos/{id}/
-
-📦 6) Lotes (Inventario)
-Listar lotes
-GET /api/lotes/
-
-Crear lote
-POST /api/lotes/
-
-Body (ejemplo):
-
-{
-  "producto": 1,
-  "numero_lote": "A001",
-  "fecha_vencimiento": "2026-02-20",
-  "cantidad_disponible": "5.00"
-}
-Operaciones por ID
-GET /api/lotes/{id}/
-
-PUT/PATCH /api/lotes/{id}/
-
-DELETE /api/lotes/{id}/
-
-👤 7) Clientes
-GET /api/clientes/
-
-POST /api/clientes/
-
-GET /api/clientes/{id}/
-
-PUT/PATCH /api/clientes/{id}/
-
-DELETE /api/clientes/{id}/
-
-🏭 8) Proveedores
-GET /api/proveedores/
-
-POST /api/proveedores/
-
-GET /api/proveedores/{id}/
-
-PUT/PATCH /api/proveedores/{id}/
-
-DELETE /api/proveedores/{id}/
-
-🧾 9) Ventas (POS)
-Crear venta
-POST /api/ventas/
-
-Body (ejemplo):
-
-{
-  "cliente": null,
-  "metodo_pago": "EFECTIVO",
-  "items": [
-    { "producto_id": 1, "cantidad": "2.00" }
+  "proveedor": 1,
+  "detalles": [
+    {
+      "producto": 1,
+      "numero_lote": "PRUEBA-COMP-01",
+      "fecha_vencimiento": "2027-12-31",
+      "cantidad": 10,
+      "precio_unitario": 15.00
+    }
   ]
 }
-Respuesta (ejemplo):
+Comportamiento
 
+Al crear una compra, el sistema:
+
+crea el encabezado de compra
+
+crea los detalles
+
+crea el lote si no existe
+
+aumenta stock si el lote ya existe
+
+genera automáticamente el registro en LibroCompra
+
+7. VENTAS
+Ventas
+
+GET, POST
+/api/ventas/
+
+GET, PUT, PATCH, DELETE
+/api/ventas/{id}/
+
+Comportamiento
+
+Al crear una venta, el sistema:
+
+registra la venta
+
+registra el detalle
+
+descuenta stock por lote
+
+aplica FEFO
+
+genera automáticamente el registro en LibroVenta
+
+Anular venta
+
+POST
+/api/ventas/{id}/anular/
+
+Body
 {
-  "venta_id": 10,
-  "subtotal": 10.0,
-  "isv": 1.5,
-  "total": 11.5
+  "motivo": "Texto del motivo"
 }
-Reglas de negocio implementadas
-FEFO automático (vence primero, sale primero)
+Comportamiento
 
-Validación de stock insuficiente (retorna faltante)
+cambia estado de la venta a ANULADA
 
-Cantidades decimales soportadas (ej: 0.50)
+registra la anulación
 
-Transacción segura (transaction.atomic)
+revierte stock por lote
 
-⚠️ 10) Alertas
-Productos con stock bajo
-GET /api/alertas/stock-bajo/
+registra usuario y fecha
 
-Lotes por vencer
-GET /api/alertas/lotes-por-vencer/
+8. CONTABILIDAD
+Libro de ventas
 
+GET
+/api/libro-ventas/
+
+Filtros opcionales
+
+?desde=YYYY-MM-DD
+
+?hasta=YYYY-MM-DD
+
+Libro de compras
+
+GET
+/api/libro-compras/
+
+Filtros opcionales
+
+?desde=YYYY-MM-DD
+
+?hasta=YYYY-MM-DD
+
+9. REPORTES
+Reporte de inventario
+
+GET
+/api/reportes/inventario/
+
+Devuelve
+
+producto
+
+lote
+
+cantidad disponible
+
+fecha de vencimiento
+
+Reporte financiero consolidado
+
+GET
+/api/reportes/financiero/
+
+Filtros opcionales
+
+?fecha_inicio=YYYY-MM-DD
+
+?fecha_fin=YYYY-MM-DD
+
+Devuelve
+
+ventas_totales
+
+compras_totales
+
+utilidad
+
+Exportación reporte financiero Excel
+
+GET
+/api/reportes/financiero/excel/
+
+Exportación reporte financiero PDF
+
+GET
+/api/reportes/financiero/pdf/
+
+Reporte libro de ventas
+
+GET
+/api/reportes/libro-ventas/
+
+Filtros opcionales
+
+?desde=YYYY-MM-DD
+
+?hasta=YYYY-MM-DD
+
+Exportación libro de ventas Excel
+
+GET
+/api/reportes/libro-ventas/excel/
+
+Exportación libro de ventas PDF
+
+GET
+/api/reportes/libro-ventas/pdf/
+
+Reporte libro de compras
+
+GET
+/api/reportes/libro-compras/
+
+Filtros opcionales
+
+?desde=YYYY-MM-DD
+
+?hasta=YYYY-MM-DD
+
+Exportación libro de compras Excel
+
+GET
+/api/reportes/libro-compras/excel/
+
+Exportación libro de compras PDF
+
+GET
+/api/reportes/libro-compras/pdf/
+
+10. OBSERVACIONES TÉCNICAS
+
+El sistema utiliza autenticación JWT.
+
+Las ventas generan automáticamente LibroVenta.
+
+Las compras generan automáticamente LibroCompra.
+
+El reporte financiero consolida información contable de ventas y compras.
+
+El inventario trabaja con lotes y fechas de vencimiento.
+
+El flujo de ventas utiliza lógica FEFO.
+
+El sistema soporta exportación de reportes a Excel y PDF.
+
+11. ESTADO GENERAL
+
+Backend funcional y validado en los módulos de:
+
+inventario
+
+compras
+
+ventas
+
+contabilidad
+
+reportes
+
+alertas
+
+autenticación

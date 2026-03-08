@@ -125,26 +125,21 @@ Esto crea el registro correspondiente en **LibroVenta**.
 
 # Módulo de Compras
 
-## Modelos implementados
+## Modelos
 
 - Proveedor
 - Compra
 - DetalleCompra
 
-## Estado actual
+## Funcionalidades
 
-El módulo de compras ya se encuentra funcional a nivel backend.
-
-## Funcionalidades implementadas
-
-- Registro de compras por API
+- Registro de compras
 - Registro de detalle de compra
-- Asociación de productos con lotes
-- Creación automática de lotes si no existen
-- Actualización de stock en inventario al registrar compras
-- Generación automática de LibroCompra mediante signal `post_save`
+- Creación automática de lotes
+- Actualización automática de inventario
+- Generación automática de LibroCompra
 
-## Endpoints disponibles
+## Endpoints
 
 /api/proveedores/
 /api/compras/
@@ -164,46 +159,34 @@ El flujo de compras quedó completo en backend y conectado con inventario y cont
 - LibroVenta
 - LibroCompra
 
-## LibroVenta
+## Funcionalidades
 
-Características:
+### Libro de ventas
 
-- relación 1:1 con Venta
-- snapshot de datos del cliente
-- subtotal
-- IVA
-- total
-- tipo de pago
-- usuario
-- estado contable
+- Generación automática al crear venta
+- Snapshot de cliente
+- Registro contable independiente
 
-Tabla en base de datos:
+### Libro de compras
 
+- Generación automática al crear compra
+- Snapshot de proveedor
+- Registro contable independiente
 
-libro_ventas
+## Endpoints
 
+/api/libro-ventas/
+/api/libro-compras/
 
 ## LibroCompra
 
-Características:
+Consulta contable de compras.
 
-- relación 1:1 con Compra
-- snapshot del proveedor
-- factura del proveedor
-- subtotal
-- IVA
-- total
-- usuario
-- estado contable
+Endpoints:
 
-Tabla en base de datos:
-
-
-libro_compras
-
-
----
-
+/api/reportes/libro-compras/
+/api/reportes/libro-compras/excel/
+/api/reportes/libro-compras/pdf/
 # Módulo de Reportes
 
 ## Reporte de Inventario

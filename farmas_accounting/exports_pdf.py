@@ -1,63 +1,87 @@
-from io import BytesIO
 from django.http import HttpResponse
-from reportlab.lib.pagesizes import LETTER
-from reportlab.pdfgen import canvas
-from config.permissions import IsFarmaciaRole
 from rest_framework.views import APIView
-from .models import LibroVenta
+from rest_framework.permissions import IsAuthenticated
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+
+from .models import LibroVenta, LibroCompra
+
 
 class ExportLibroVentasPDF(APIView):
-    permission_classes = [IsFarmaciaRole]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         desde = request.query_params.get("desde")
         hasta = request.query_params.get("hasta")
 
-        qs = LibroVenta.objects.all().order_by("fecha_contable", "id")
+        qs = LibroVenta.objects.all().order_by("-fecha_contable", "-id")
+
         if desde:
             qs = qs.filter(fecha_contable__gte=desde)
         if hasta:
             qs = qs.filter(fecha_contable__lte=hasta)
 
-        buffer = BytesIO()
-        c = canvas.Canvas(buffer, pagesize=LETTER)
-        width, height = LETTER
+        response = HttpResponse(content_type="application/pdf")
+        response["Content-Disposition"] = 'attachment; filename="libro_ventas.pdf"'
 
-        y = height - 50
+        c = canvas.Canvas(response, pagesize=letter)
+        width, height = letter
+        y = height - 40
+
         c.setFont("Helvetica-Bold", 14)
-        c.drawString(50, y, "Reporte: Libro de Ventas")
-        y -= 20
-        c.setFont("Helvetica", 10)
-        c.drawString(50, y, f"Desde: {desde or '---'}  Hasta: {hasta or '---'}")
+        c.drawString(50, y, "LIBRO DE VENTAS")
         y -= 30
 
-        c.setFont("Helvetica-Bold", 9)
-        c.drawString(50, y, "Fecha")
-        c.drawString(110, y, "Doc")
-        c.drawString(200, y, "Cliente")
-        c.drawString(420, y, "Total")
-        y -= 15
         c.setFont("Helvetica", 9)
+        for item in qs:
+            line = f"{item.id} | Venta {item.venta_id} | {item.fecha_contable} | {item.cliente_nombre} | Total: {item.total}"
+            c.drawString(50, y, line[:110])
+            y -= 15
 
-        for x in qs[:500]:  # límite razonable
-            if y < 60:
+            if y < 50:
                 c.showPage()
-                y = height - 50
                 c.setFont("Helvetica", 9)
+                y = height - 40
 
-            doc = f"{x.serie or ''}{x.numero_documento}"
-            c.drawString(50, y, str(x.fecha_contable))
-            c.drawString(110, y, doc[:12])
-            c.drawString(200, y, (x.cliente_nombre or "")[:35])
-            c.drawRightString(500, y, str(x.total))
-            y -= 12
-
-        c.showPage()
         c.save()
+        return response
 
-        pdf = buffer.getvalue()
-        buffer.close()
 
-        resp = HttpResponse(pdf, content_type="application/pdf")
-        resp["Content-Disposition"] = 'attachment; filename="libro_ventas.pdf"'
-        return resp
+class ExportLibroComprasPDF(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        desde = request.query_params.get("desde")
+        hasta = request.query_params.get("hasta")
+
+        qs = LibroCompra.objects.all().order_by("-fecha", "-id")
+
+        if desde:
+            qs = qs.filter(fecha__gte=desde)
+        if hasta:
+            qs = qs.filter(fecha__lte=hasta)
+
+        response = HttpResponse(content_type="application/pdf")
+        response["Content-Disposition"] = 'attachment; filename="libro_compras.pdf"'
+
+        c = canvas.Canvas(response, pagesize=letter)
+        width, height = letter
+        y = height - 40
+
+        c.setFont("Helvetica-Bold", 14)
+        c.drawString(50, y, "LIBRO DE COMPRAS")
+        y -= 30
+
+        c.setFont("Helvetica", 9)
+        for item in qs:
+            line = f"{item.id} | Compra {item.compra_id} | {item.fecha} | {item.proveedor_nombre} | Total: {item.total}"
+            c.drawString(50, y, line[:110])
+            y -= 15
+
+            if y < 50:
+                c.showPage()
+                c.setFont("Helvetica", 9)
+                y = height - 40
+
+        c.save()
+        return response

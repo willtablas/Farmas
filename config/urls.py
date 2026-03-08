@@ -15,7 +15,10 @@ from farmas_accounting.reports import ReporteLibroVentas
 from farmas_accounting.exports import ExportLibroVentasExcel
 from farmas_accounting.exports_pdf import ExportLibroVentasPDF
 from reportes.views import ReporteInventarioView
-
+from farmas_accounting.views import LibroVentaViewSet, LibroCompraViewSet
+from farmas_accounting.reports import ReporteLibroVentas, ReporteLibroCompras
+from farmas_accounting.exports import ExportLibroVentasExcel, ExportLibroComprasExcel
+from farmas_accounting.exports_pdf import ExportLibroVentasPDF, ExportLibroComprasPDF
 
 
 
@@ -29,6 +32,7 @@ router.register(r"proveedores", ProveedorViewSet, basename="proveedor")
 router.register(r"ventas", VentaViewSet, basename="venta")
 router.register(r"libro-ventas", LibroVentaViewSet, basename="libro-venta")
 router.register(r"compras", CompraViewSet, basename="compra")
+router.register(r"libro-compras", LibroCompraViewSet, basename="libro-compra")
 
 
 urlpatterns = [
@@ -49,10 +53,14 @@ urlpatterns = [
     path("api/reportes/libro-ventas/", ReporteLibroVentas.as_view()),
     path("api/reportes/libro-ventas/excel/", ExportLibroVentasExcel.as_view()),
     path("api/reportes/libro-ventas/pdf/", ExportLibroVentasPDF.as_view()),
-
+    path("api/reportes/libro-compras/", ReporteLibroCompras.as_view()),
+    path("api/reportes/libro-compras/excel/", ExportLibroComprasExcel.as_view()),
+    path("api/reportes/libro-compras/pdf/", ExportLibroComprasPDF.as_view()),
     
     path("api/reportes/inventario/", ReporteInventarioView.as_view(), name="reporte-inventario"),
     path("", include("reportes.urls")),
+
+    
 ]
 
 
