@@ -10,10 +10,12 @@ function Anulaciones() {
   const cargarVentas = async () => {
     try {
       const response = await api.get("/api/ventas/");
-      setVentas(response.data);
+      const data = response.data?.results || response.data || [];
+      setVentas(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error cargando ventas:", error);
       setMensaje("No se pudieron cargar las ventas.");
+      setVentas([]);
     } finally {
       setCargando(false);
     }
@@ -91,37 +93,41 @@ function Anulaciones() {
                   </tr>
                 </thead>
                 <tbody>
-                  {ventas.map((venta) => (
-                    <tr key={venta.id}>
-                      <td>{venta.id}</td>
-                      <td>{venta.fecha}</td>
-                      <td>{venta.cliente}</td>
-                      <td>{venta.total}</td>
-                      <td>
-                        {String(venta.estado).toUpperCase() === "ANULADA" ? (
-                          <span className="badge bg-danger">Anulada</span>
-                        ) : (
-                          <span className="badge bg-success">Activa</span>
-                        )}
-                      </td>
-                      <td>
-                        {String(venta.estado).toUpperCase() !== "ANULADA" && (
-                          <button
-                            className="btn btn-danger btn-sm"
-                            onClick={() => anularVenta(venta.id)}
-                          >
-                            Anular
-                          </button>
-                        )}
+                  {Array.isArray(ventas) && ventas.length > 0 ? (
+                    ventas.map((venta) => (
+                      <tr key={venta.id}>
+                        <td>{venta.id}</td>
+                        <td>{venta.fecha || "-"}</td>
+                        <td>{venta.cliente || "-"}</td>
+                        <td>{venta.total ?? 0}</td>
+                        <td>
+                          {String(venta.estado).toUpperCase() === "ANULADA" ? (
+                            <span className="badge bg-danger">Anulada</span>
+                          ) : (
+                            <span className="badge bg-success">Activa</span>
+                          )}
+                        </td>
+                        <td>
+                          {String(venta.estado).toUpperCase() !== "ANULADA" && (
+                            <button
+                              className="btn btn-danger btn-sm"
+                              onClick={() => anularVenta(venta.id)}
+                            >
+                              Anular
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="text-center">
+                        No hay ventas registradas.
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
-
-              {ventas.length === 0 && (
-                <p className="text-muted">No hay ventas registradas.</p>
-              )}
             </div>
           </div>
         )}

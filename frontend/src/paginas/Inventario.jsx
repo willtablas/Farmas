@@ -11,10 +11,13 @@ function Inventario() {
     const cargarInventario = async () => {
       try {
         const response = await api.get("/api/reportes/inventario/");
-        setLotes(response.data);
+
+        const data = response.data?.results || response.data || [];
+        setLotes(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Error al cargar inventario:", err);
         setError("No se pudo cargar el inventario.");
+        setLotes([]);
       } finally {
         setCargando(false);
       }
@@ -31,7 +34,9 @@ function Inventario() {
           Consulta de lotes disponibles en inventario.
         </p>
 
-        {cargando && <div className="alert alert-info">Cargando inventario...</div>}
+        {cargando && (
+          <div className="alert alert-info">Cargando inventario...</div>
+        )}
 
         {error && <div className="alert alert-danger">{error}</div>}
 
@@ -49,13 +54,13 @@ function Inventario() {
                     </tr>
                   </thead>
                   <tbody>
-                    {lotes.length > 0 ? (
+                    {Array.isArray(lotes) && lotes.length > 0 ? (
                       lotes.map((lote, index) => (
-                        <tr key={index}>
+                        <tr key={lote.id || index}>
                           <td>{index + 1}</td>
-                          <td>{lote.producto}</td>
-                          <td>{lote.cantidad_disponible}</td>
-                          <td>{lote.fecha_vencimiento}</td>
+                          <td>{lote.producto || "-"}</td>
+                          <td>{lote.cantidad_disponible || "-"}</td>
+                          <td>{lote.fecha_vencimiento || "-"}</td>
                         </tr>
                       ))
                     ) : (

@@ -11,29 +11,38 @@ function Login() {
   const [cargando, setCargando] = useState(false);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMensaje("");
-    setCargando(true);
+  e.preventDefault();
+  setMensaje("");
+  setCargando(true);
 
-    try {
-      const response = await api.post("/api/token/", {
-        username,
-        password,
-      });
+  try {
+    const response = await api.post("/api/token/", {
+      username,
+      password,
+    });
 
-      localStorage.setItem("token", response.data.access);
-      localStorage.setItem("refresh", response.data.refresh);
-      localStorage.setItem("username", username);
+    localStorage.setItem("token", response.data.access);
+    localStorage.setItem("refresh", response.data.refresh);
+    localStorage.setItem("username", username);
 
-      setMensaje("Inicio de sesión exitoso");
-      navigate("/dashboard");
-    } catch (error) {
-      console.error(error);
-      setMensaje("Usuario o contraseña incorrectos");
-    } finally {
-      setCargando(false);
+    setMensaje("Inicio de sesión exitoso");
+    navigate("/dashboard");
+  } catch (error) {
+    console.log("Error completo:", error);
+
+    if (error.response) {
+      console.log("Respuesta backend:", error.response.data);
+
+      setMensaje(
+        error.response.data.detail || "Usuario o contraseña incorrectos"
+      );
+    } else {
+      setMensaje("Error de conexión con el servidor");
     }
-  };
+  } finally {
+    setCargando(false);
+  }
+};
 
   return (
     <div style={styles.page}>

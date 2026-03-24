@@ -21,10 +21,12 @@ function LibroVentas() {
         },
       });
 
-      setRegistros(response.data);
+      const data = response.data?.results || response.data || [];
+      setRegistros(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error al cargar libro de ventas:", err);
       setError("No se pudo cargar el libro de ventas.");
+      setRegistros([]);
     } finally {
       setCargando(false);
     }
@@ -100,17 +102,17 @@ function LibroVentas() {
                     </tr>
                   </thead>
                   <tbody>
-                    {registros.length > 0 ? (
+                    {Array.isArray(registros) && registros.length > 0 ? (
                       registros.map((item, index) => (
                         <tr key={item.id || index}>
                           <td>{index + 1}</td>
                           <td>
                             {item.fecha
-                            ? new Date(item.fecha).toLocaleDateString()
-                            : item.created_at
-                            ? new Date(item.created_at).toLocaleDateString()
-                            : "-"}
-                          </td>                           
+                              ? new Date(item.fecha).toLocaleDateString()
+                              : item.created_at
+                              ? new Date(item.created_at).toLocaleDateString()
+                              : "-"}
+                          </td>
                           <td>{item.cliente || "-"}</td>
                           <td>{item.subtotal ?? 0}</td>
                           <td>{item.isv ?? 0}</td>

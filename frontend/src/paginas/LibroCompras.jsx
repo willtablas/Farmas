@@ -21,10 +21,12 @@ function LibroCompras() {
         },
       });
 
-      setRegistros(response.data);
+      const data = response.data?.results || response.data || [];
+      setRegistros(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error al cargar libro de compras:", err);
       setError("No se pudo cargar el libro de compras.");
+      setRegistros([]);
     } finally {
       setCargando(false);
     }
@@ -100,7 +102,7 @@ function LibroCompras() {
                     </tr>
                   </thead>
                   <tbody>
-                    {registros.length > 0 ? (
+                    {Array.isArray(registros) && registros.length > 0 ? (
                       registros.map((item, index) => (
                         <tr key={item.id || index}>
                           <td>{index + 1}</td>
