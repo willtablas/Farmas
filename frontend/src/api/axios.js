@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://127.0.0.1:8000",
+  baseURL: "https://brandi-blanketlike-overcaptiously.ngrok-free.dev",
 });
 
 api.interceptors.request.use(
@@ -32,16 +32,14 @@ api.interceptors.response.use(
       const refresh = localStorage.getItem("refresh");
 
       if (!refresh) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("refresh");
-        localStorage.removeItem("username");
+        localStorage.clear();
         window.location.href = "/login";
         return Promise.reject(error);
       }
 
       try {
         const response = await axios.post(
-          "http://127.0.0.1:8000/api/token/refresh/",
+          "https://brandi-blanketlike-overcaptiously.ngrok-free.dev/api/token/refresh/",
           {
             refresh: refresh,
           }
@@ -55,9 +53,7 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("refresh");
-        localStorage.removeItem("username");
+        localStorage.clear();
         window.location.href = "/login";
         return Promise.reject(refreshError);
       }
